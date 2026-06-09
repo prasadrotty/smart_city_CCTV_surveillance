@@ -19,7 +19,7 @@ class VisualEngineAgent:
             summary, x='Количество видеокамер', y='Район', orientation='h',
             title='<b>Total Camera Deployment Volume by District</b>',
             labels={'Количество видеокамер': 'Camera Count', 'Район': 'Administrative District'},
-            color='Количество видеокамер', color_continuous_scale='Viridis'
+            color='Количество видеокамер', color_continuous_scale='YlOrRd'
         )
         fig.update_layout(
             template='plotly_dark',
