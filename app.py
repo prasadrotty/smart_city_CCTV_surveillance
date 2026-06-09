@@ -33,6 +33,31 @@ def run_ingestion_pipeline():
 # Load cleaned dataset across the app session
 df_clean = run_ingestion_pipeline()
 
+# Dictionary to dynamically map Russian District names to English for the UI view
+DISTRICT_TRANSLATION = {
+    "Адмиралтейский": "Admiralteysky",
+    "Василеостровский": "Vasileostrovsky",
+    "Выборгский": "Vyborgsky",
+    "Калининский": "Kalininsky",
+    "Кировский": "Kirovsky",
+    "Колпинский": "Kolpinsky",
+    "Красногвардейский": "Krasnogvardeysky",
+    "Красносельский": "Krasnoselsky",
+    "Кронштадтский": "Kronstadtsky",
+    "Курортный": "Kurortny",
+    "Московский": "Moskovsky",
+    "Невский": "Nevsky",
+    "Петроградский": "Petrogradsky",
+    "Петродворцовый": "Petrodvortsovy",
+    "Приморский": "Primorsky",
+    "Пушкинский": "Pushkinsky",
+    "Фрунзенский": "Frunzensky",
+    "Центральный": "Central"
+}
+
+# Apply English translation mapping helper safely
+df_clean['District_En'] = df_clean['Район'].map(DISTRICT_TRANSLATION).fillna(df_clean['Район'])
+
 # Instantiate specialized analytical, visualization, and ML modeling agents
 analytics_agent = AnalyticsAgent(df_clean)
 visual_agent = VisualEngineAgent(df_clean)
@@ -109,12 +134,20 @@ elif selected_tab == "Territorial Stratification (Clustering)":
     
     # Process Unsupervised Cluster Tiers
     cluster_df = ml_agent.run_district_clustering()
+    # Map the translated district names to the cluster dataframe for the scatter plot
+    cluster_df['District_En'] = cluster_df['Район'].map(DISTRICT_TRANSLATION).fillna(cluster_df['Район'])
     
     fig_cluster = px.scatter(
         cluster_df, x='address_count', y='total_cameras', size='mean_cameras',
-        color='Hub_Classification', hover_name='Район',
+        color='Hub_Classification', hover_name='District_En',
         title="<b>District Structural Partitioning Map</b>",
-        labels={'address_count': 'Total Address Coordinates', 'total_cameras': 'Total Deployed Cameras'},
+        labels={
+            'address_count': 'Total Address Coordinates', 
+            'total_cameras': 'Total Deployed Cameras',
+            'mean_cameras': 'Average Cameras/Node',
+            'Hub_Classification': 'Strategic Cluster',
+            'District_En': 'District Name'
+        },
         color_discrete_sequence=px.colors.qualitative.G10
     )
     fig_cluster.update_layout(template='plotly_dark', paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
@@ -123,7 +156,7 @@ elif selected_tab == "Territorial Stratification (Clustering)":
     st.write("### Detailed Tier Allocation Summary")
     
     # Format and present sorted data frame overview safely to the user view
-    leaderboard_view = cluster_df[['Район', 'address_count', 'total_cameras', 'mean_cameras', 'Hub_Classification']].copy()
+    leaderboard_view = cluster_df[['District_En', 'address_count', 'total_cameras', 'mean_cameras', 'Hub_Classification']].copy()
     leaderboard_view.columns = ['District Name', 'Total Addresses', 'Total Cameras', 'Average Cameras/Node', 'Strategic Classification Cluster']
     st.dataframe(leaderboard_view.sort_values(by='Total Cameras', ascending=False), use_container_width=True, hide_index=True)
 
@@ -144,12 +177,19 @@ elif selected_tab == "Asset Requirement Estimation":
     st.markdown("#### Dynamic Real-Time Parameter Inference Simulator")
     input_col1, input_col2, input_col3 = st.columns(3)
     
+    # Create an English UI selection list linked back to the expected underlying Russian dataset values
+    english_districts = sorted(list(DISTRICT_TRANSLATION.values()))
+    # Reverse lookup dictionary to pass the original Russian string back to the ML agent model
+    reverse_translation = {v: k for k, v in DISTRICT_TRANSLATION.items()}
+
     with input_col1:
-        selected_district = st.selectbox("Select Target District (Район):", sorted(df_clean['Район'].unique()))
+        selected_district_en = st.selectbox("Select Target District:", english_districts)
+        # Select original matching Russian value behind the scenes for the ML model pipeline
+        selected_district = reverse_translation.get(selected_district_en)
     with input_col2:
         selected_street = st.selectbox("Select Built Environment Category:", sorted(df_clean['Street_Type'].unique()))
     with input_col3:
-        addr_text = st.text_input("Enter Mock Local Address String for Feature Parsing:", "Невский проспект, дом 100")
+        addr_text = st.text_input("Enter Mock Local Address String for Feature Parsing:", "100 Main Street, Apt 4")
         
     # Trigger supervised estimation inference pipeline 
     if st.button("Execute Estimator Inference", type="primary"):
