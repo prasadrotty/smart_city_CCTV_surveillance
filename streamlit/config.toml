@@ -1,0 +1,21 @@
+[theme]
+primaryColor = "#4f46e5"          # Vibrant Indigo accent color for active items, buttons, and indicators
+backgroundColor = "#0f172a"       # Slate 900 background for a sleek, premium dark appearance
+secondaryBackgroundColor = "#1e293b" # Slate 800 background for sidebars, containers, and cards
+textColor = "#f8fafc"              # Crisp Off-White text for sharp typographic contrast
+font = "sans serif"               # Standard clean modern sans-serif typography
+
+[theme.dark]
+# Tells Streamlit to favor system dark configurations if available
+base = "dark"
+
+[server]
+# Optimizations for handling the dataset smoothly in memory
+headless = true
+enableCORS = false
+enableXsrfProtection = true
+maxUploadSize = 50                 # Limits maximum file payload size to 50MB (dataset is ~440KB)
+
+[browser]
+# Disables the annoying development warning toasts on production
+gatherUsageStats = false
