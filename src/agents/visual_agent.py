@@ -38,7 +38,7 @@ class VisualEngineAgent:
             summary, values='Количество видеокамер', names='Street_Type',
             title='<b>Average Safety Infrastructure Concentration Density</b>',
             hole=0.4,
-            color_discrete_sequence=px.colors.sequential.MediumWarm
+            color_discrete_sequence=px.colors.sequential.Sunset
         )
         fig.update_layout(
             template='plotly_dark',
